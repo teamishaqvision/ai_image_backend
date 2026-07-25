@@ -11,9 +11,10 @@ class ImageRequest(BaseModel):
 
 # 1. Segmind Image Generation Function (Primary)
 def generate_with_segmind(prompt: str):
-    api_key = os.environ.get("SG_54f518075b624090")
+    # Sahi tareeqa: Environment variable ka naam likhna hai
+    api_key = os.environ.get("SEGMIND_API_KEY")
     if not api_key:
-        raise Exception("SG_54f518075b624090")
+        raise Exception("Segmind API key not found in environment variables")
     
     url = "https://api.segmind.com/v1/sdxl-1.0-base"
     payload = {
@@ -36,9 +37,10 @@ def generate_with_segmind(prompt: str):
 
 # 2. Runware Image Generation Function (Secondary)
 def generate_with_runware(prompt: str):
-    api_key = os.environ.get("fjcQYpZXfII1PcrQdcHTdGjwbrRhvewf")
+    # Sahi tareeqa: Environment variable ka naam likhna hai
+    api_key = os.environ.get("RUNWARE_API_KEY")
     if not api_key:
-        raise Exception("fjcQYpZXfII1PcrQdcHTdGjwbrRhvewf")
+        raise Exception("Runware API key not found in environment variables")
     
     url = "https://api.runware.ai/v1"
     headers = {"Authorization": f"Bearer {api_key}"}
@@ -65,17 +67,14 @@ def generate_with_runware(prompt: str):
 
 # 3. Pollinations.ai Image Generation Function (Third Fallback - Free & Open)
 def generate_with_pollinations(prompt: str):
-    # Prompt ko URL encode karna zaroori hai taaki spaces ya special characters mein error na aaye
     encoded_prompt = urllib.parse.quote(prompt)
     image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}"
     
-    # Check karne ke liye ki URL active hai ya nahi
     response = requests.get(image_url)
     if response.status_code == 200:
         return {"image_url": image_url}
     else:
         raise Exception(f"Pollinations failed with status {response.status_code}")
-
 
 # Main Multi-API Fallback Endpoint
 @app.post("/generate-image")
@@ -106,9 +105,7 @@ def generate_image(data: ImageRequest):
     except Exception as e:
         print(f"Pollinations error: {e}")
         
-    # Agar teeno fail ho jayein
     raise HTTPException(status_code=500, detail="All image generation providers are currently unavailable.")
-
 
 @app.get("/")
 def home():
