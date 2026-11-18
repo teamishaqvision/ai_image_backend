@@ -153,6 +153,27 @@ def generate_image(data: ImageRequest, request: Request):
 
     raise HTTPException(status_code=500, detail="All image generation providers are currently unavailable.")
 
+@app.get("/debug")
+def debug():
+    cid = bool(os.environ.get("CF_ACCOUNT_ID"))
+    tok = os.environ.get("CF_API_TOKEN")
+    verify = None
+    if tok:
+        try:
+            r = requests.get(
+                "https://api.cloudflare.com/client/v4/user/tokens/verify",
+                headers={"Authorization": f"Bearer {tok}"},
+                timeout=15,
+            )
+            verify = r.status_code
+        except Exception as e:
+            verify = f"error: {e}"
+    return {
+        "CF_ACCOUNT_ID_set": cid,
+        "CF_API_TOKEN_set": bool(tok),
+        "token_verify": verify,
+    }
+
 @app.get("/")
 def home():
     return {"message": "Welcome to ManifestAI Backend with 4-Layer Multi-API Fallback ✨ (Segmind → Runware → Cloudflare → Pollinations)"}
